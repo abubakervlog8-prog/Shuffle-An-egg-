@@ -1,0 +1,518 @@
+--// SHUFFLE AN EGG - MINI RGB ESP
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local CoreGui = game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local Player = Players.LocalPlayer
+local Remotes = ReplicatedStorage:WaitForChild("Remotes",10)
+if not Remotes then return end
+
+local Handshake = Remotes:WaitForChild("GameHandShake",10)
+if not Handshake then return end
+
+local Dead = false
+local ESPOn = true
+local RGBOn = true
+local RGBSpeed = 0.7
+local ESPList = {}
+local Connections = {}
+
+pcall(function()
+    local old = CoreGui:FindFirstChild("ShuffleEggMini")
+    if old then old:Destroy() end
+end)
+
+--// GUI
+local GUI = Instance.new("ScreenGui")
+GUI.Name = "ShuffleEggMini"
+GUI.ResetOnSpawn = false
+GUI.Parent = CoreGui
+
+local Main = Instance.new("Frame")
+Main.Size = UDim2.fromOffset(285,210)
+Main.Position = UDim2.new(.5,-142,.5,-105)
+Main.BackgroundColor3 = Color3.fromRGB(10,13,20)
+Main.BorderSizePixel = 0
+Main.Active = true
+Main.Parent = GUI
+
+Instance.new("UICorner",Main).CornerRadius = UDim.new(0,9)
+
+local Border = Instance.new("UIStroke")
+Border.Thickness = 1.5
+Border.Parent = Main
+
+--// RGB border
+Connections.RGB = RunService.RenderStepped:Connect(function()
+    if Dead then return end
+
+    Border.Color = Color3.fromHSV(
+        (tick()*RGBSpeed/5)%1,
+        1,
+        1
+    )
+end)
+
+--// TITLE
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1,-90,0,28)
+Title.Position = UDim2.fromOffset(9,4)
+Title.BackgroundTransparency = 1
+Title.Text = "⚡ SHUFFLE EGG"
+Title.TextColor3 = Color3.fromRGB(0,255,190)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 13
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = Main
+
+--// INV
+local Inv = Instance.new("TextButton")
+Inv.Size = UDim2.fromOffset(38,23)
+Inv.Position = UDim2.new(1,-83,0,6)
+Inv.BackgroundColor3 = Color3.fromRGB(25,30,42)
+Inv.Text = "INV"
+Inv.TextColor3 = Color3.new(1,1,1)
+Inv.Font = Enum.Font.GothamBold
+Inv.TextSize = 8
+Inv.Parent = Main
+Instance.new("UICorner",Inv).CornerRadius = UDim.new(0,5)
+
+--// DELETE
+local Delete = Instance.new("TextButton")
+Delete.Size = UDim2.fromOffset(38,23)
+Delete.Position = UDim2.new(1,-42,0,6)
+Delete.BackgroundColor3 = Color3.fromRGB(55,20,28)
+Delete.Text = "DEL"
+Delete.TextColor3 = Color3.fromRGB(255,100,115)
+Delete.Font = Enum.Font.GothamBold
+Delete.TextSize = 8
+Delete.Parent = Main
+Instance.new("UICorner",Delete).CornerRadius = UDim.new(0,5)
+
+--// STATUS
+local Status = Instance.new("TextLabel")
+Status.Size = UDim2.new(1,-18,0,38)
+Status.Position = UDim2.fromOffset(9,35)
+Status.BackgroundColor3 = Color3.fromRGB(17,23,32)
+Status.Text = "● READY\nWaiting..."
+Status.TextColor3 = Color3.fromRGB(185,195,210)
+Status.Font = Enum.Font.GothamMedium
+Status.TextSize = 8
+Status.Parent = Main
+Instance.new("UICorner",Status).CornerRadius = UDim.new(0,6)
+
+--// TARGET
+local Target = Instance.new("TextLabel")
+Target.Size = UDim2.new(1,-18,0,31)
+Target.Position = UDim2.fromOffset(9,78)
+Target.BackgroundColor3 = Color3.fromRGB(15,40,35)
+Target.Text = "🎯 TARGET: NONE"
+Target.TextColor3 = Color3.fromRGB(0,255,190)
+Target.Font = Enum.Font.GothamBold
+Target.TextSize = 10
+Target.Parent = Main
+Instance.new("UICorner",Target).CornerRadius = UDim.new(0,6)
+
+--// ESP
+local ESPButton = Instance.new("TextButton")
+ESPButton.Size = UDim2.new(.5,-12,0,27)
+ESPButton.Position = UDim2.fromOffset(9,116)
+ESPButton.BackgroundColor3 = Color3.fromRGB(15,90,70)
+ESPButton.Text = "ESP ON"
+ESPButton.TextColor3 = Color3.new(1,1,1)
+ESPButton.Font = Enum.Font.GothamBold
+ESPButton.TextSize = 8
+ESPButton.Parent = Main
+Instance.new("UICorner",ESPButton).CornerRadius = UDim.new(0,5)
+
+--// RGB
+local RGBButton = Instance.new("TextButton")
+RGBButton.Size = UDim2.new(.5,-12,0,27)
+RGBButton.Position = UDim2.new(.5,3,0,116)
+RGBButton.BackgroundColor3 = Color3.fromRGB(15,90,70)
+RGBButton.Text = "RGB ON"
+RGBButton.TextColor3 = Color3.new(1,1,1)
+RGBButton.Font = Enum.Font.GothamBold
+RGBButton.TextSize = 8
+RGBButton.Parent = Main
+Instance.new("UICorner",RGBButton).CornerRadius = UDim.new(0,5)
+
+--// CLEAR
+local Clear = Instance.new("TextButton")
+Clear.Size = UDim2.new(1,-18,0,27)
+Clear.Position = UDim2.fromOffset(9,149)
+Clear.BackgroundColor3 = Color3.fromRGB(27,31,42)
+Clear.Text = "CLEAR ESP"
+Clear.TextColor3 = Color3.fromRGB(225,230,240)
+Clear.Font = Enum.Font.GothamBold
+Clear.TextSize = 8
+Clear.Parent = Main
+Instance.new("UICorner",Clear).CornerRadius = UDim.new(0,5)
+
+--// UNINV
+local Uninv = Instance.new("TextButton")
+Uninv.Size = UDim2.fromOffset(48,25)
+Uninv.Position = UDim2.fromOffset(8,8)
+Uninv.BackgroundColor3 = Color3.fromRGB(10,25,25)
+Uninv.Text = "UNINV"
+Uninv.TextColor3 = Color3.fromRGB(0,255,190)
+Uninv.Font = Enum.Font.GothamBold
+Uninv.TextSize = 8
+Uninv.Visible = false
+Uninv.Parent = GUI
+Instance.new("UICorner",Uninv).CornerRadius = UDim.new(0,5)
+
+--// CLEAR ESP
+local function ClearESP()
+    for _,v in ipairs(ESPList) do
+        pcall(function() v:Destroy() end)
+    end
+
+    table.clear(ESPList)
+
+    local Base = workspace:FindFirstChild("Base")
+    if not Base then return end
+
+    for _,v in ipairs(Base:GetDescendants()) do
+        if v.Name == "ShuffleEggMiniESP" then
+            pcall(function() v:Destroy() end)
+        end
+    end
+end
+
+--// CALCULATE TARGET
+local function GetTarget(sequence)
+
+    local position = 2
+
+    for _,move in ipairs(sequence) do
+
+        if move == "Shuffle1"
+        or move == "Shuffle2" then
+
+            if position == 2 then
+                position = 3
+            elseif position == 3 then
+                position = 2
+            end
+
+        elseif move == "Shuffle3"
+        or move == "Shuffle4" then
+
+            if position == 1 then
+                position = 2
+            elseif position == 2 then
+                position = 1
+            end
+
+        elseif move == "Shuffle5"
+        or move == "Shuffle6" then
+
+            if position == 1 then
+                position = 3
+            elseif position == 3 then
+                position = 1
+            end
+
+        end
+    end
+
+    return position
+end
+
+--// FIND CUP
+local function FindCup(number)
+
+    local Base = workspace:FindFirstChild("Base")
+    if not Base then return nil end
+
+    for _,base in ipairs(Base:GetChildren()) do
+
+        if base:GetAttribute("Owner")
+        == Player.Name then
+
+            local DealerContainer =
+                base:FindFirstChild("DealerContainer")
+
+            local Dealer =
+                DealerContainer
+                and DealerContainer:FindFirstChild(
+                    "Lucky Dealer"
+                )
+
+            local Cups =
+                Dealer
+                and Dealer:FindFirstChild("Cups")
+
+            local Skin =
+                Cups
+                and Cups:FindFirstChild("SKIN")
+
+            local Cup =
+                Skin
+                and Skin:FindFirstChild(
+                    "Cup"..tostring(number)
+                )
+
+            if Cup then
+                return Cup
+            end
+        end
+    end
+
+    return nil
+end
+
+--// RGB ESP
+local function MakeESP(Cup)
+
+    if not ESPOn or not Cup then
+        return
+    end
+
+    local Highlight = Instance.new("Highlight")
+
+    Highlight.Name = "ShuffleEggMiniESP"
+    Highlight.DepthMode =
+        Enum.HighlightDepthMode.AlwaysOnTop
+    Highlight.FillTransparency = .2
+    Highlight.OutlineTransparency = 0
+    Highlight.Parent = Cup
+
+    table.insert(ESPList,Highlight)
+
+    task.spawn(function()
+
+        while Highlight.Parent and not Dead do
+
+            if RGBOn then
+
+                local hue =
+                    (tick()*RGBSpeed/5)%1
+
+                Highlight.FillColor =
+                    Color3.fromHSV(
+                        hue,1,1
+                    )
+
+                Highlight.OutlineColor =
+                    Color3.fromHSV(
+                        (hue+.5)%1,1,1
+                    )
+
+            else
+
+                Highlight.FillColor =
+                    Color3.fromRGB(
+                        0,255,190
+                    )
+
+                Highlight.OutlineColor =
+                    Color3.new(1,1,1)
+
+            end
+
+            task.wait(.03)
+        end
+    end)
+end
+
+--// SHUFFLE EVENT
+Connections.Shuffle =
+    Handshake.OnClientEvent:Connect(
+        function(action,data)
+
+            if Dead then return end
+
+            if action == "ShuffleSequence"
+            and type(data) == "table"
+            and type(data.Sequence) == "table" then
+
+                ClearESP()
+
+                local target =
+                    GetTarget(data.Sequence)
+
+                local names = {
+                    [1] = "LEFT",
+                    [2] = "MIDDLE",
+                    [3] = "RIGHT"
+                }
+
+                Target.Text =
+                    "🎯 "..(names[target] or "?").." CUP"
+
+                Status.Text =
+                    "● SHUFFLE DETECTED\nTarget found"
+
+                local Cup = FindCup(target)
+
+                if Cup then
+                    MakeESP(Cup)
+                end
+
+            elseif action == "RevealResult" then
+
+                task.delay(1.5,function()
+
+                    if Dead then return end
+
+                    ClearESP()
+
+                    Target.Text =
+                        "🎯 TARGET: NONE"
+
+                    Status.Text =
+                        "● READY\nWaiting..."
+
+                end)
+            end
+        end
+    )
+
+--// ESP BUTTON
+ESPButton.MouseButton1Click:Connect(function()
+
+    ESPOn = not ESPOn
+
+    ESPButton.Text =
+        ESPOn and "ESP ON" or "ESP OFF"
+
+    if not ESPOn then
+        ClearESP()
+    end
+end)
+
+--// RGB BUTTON
+RGBButton.MouseButton1Click:Connect(function()
+
+    RGBOn = not RGBOn
+
+    RGBButton.Text =
+        RGBOn and "RGB ON" or "RGB OFF"
+
+end)
+
+--// CLEAR
+Clear.MouseButton1Click:Connect(function()
+
+    ClearESP()
+
+    Target.Text =
+        "🎯 TARGET: NONE"
+
+    Status.Text =
+        "● CLEARED"
+
+end)
+
+--// INV
+Inv.MouseButton1Click:Connect(function()
+
+    Main.Visible = false
+    Uninv.Visible = true
+
+end)
+
+--// UNINV
+Uninv.MouseButton1Click:Connect(function()
+
+    Main.Visible = true
+    Uninv.Visible = false
+
+end)
+
+--// DELETE
+Delete.MouseButton1Click:Connect(function()
+
+    Dead = true
+
+    ClearESP()
+
+    for _,connection in pairs(Connections) do
+        pcall(function()
+            connection:Disconnect()
+        end)
+    end
+
+    table.clear(ESPList)
+    table.clear(Connections)
+
+    GUI:Destroy()
+
+end)
+
+--// DRAG
+local Dragging = false
+local DragStart
+local StartPosition
+
+Title.InputBegan:Connect(function(input)
+
+    if input.UserInputType ==
+        Enum.UserInputType.MouseButton1
+        or input.UserInputType ==
+        Enum.UserInputType.Touch then
+
+        Dragging = true
+        DragStart = input.Position
+        StartPosition = Main.Position
+
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+
+    if not Dragging then return end
+
+    if input.UserInputType ==
+        Enum.UserInputType.MouseMovement
+        or input.UserInputType ==
+        Enum.UserInputType.Touch then
+
+        local Delta =
+            input.Position - DragStart
+
+        Main.Position =
+            UDim2.new(
+                StartPosition.X.Scale,
+                StartPosition.X.Offset + Delta.X,
+                StartPosition.Y.Scale,
+                StartPosition.Y.Offset + Delta.Y
+            )
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+
+    if input.UserInputType ==
+        Enum.UserInputType.MouseButton1
+        or input.UserInputType ==
+        Enum.UserInputType.Touch then
+
+        Dragging = false
+    end
+end)
+
+--// RIGHT CONTROL
+Connections.Keyboard =
+    UserInputService.InputBegan:Connect(
+        function(input,processed)
+
+            if processed or Dead then return end
+
+            if input.KeyCode ==
+                Enum.KeyCode.RightControl then
+
+                Main.Visible = not Main.Visible
+                Uninv.Visible = not Main.Visible
+
+            end
+        end
+    )
+
+Status.Text =
+    "● READY\nRGB ESP ACTIVE"
